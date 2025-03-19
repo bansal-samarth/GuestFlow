@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 
 from . import visitor_bp
 from models import db, User, Visitor
-from utils.helpers import save_photo, generate_badge_id
+from utils.helpers import generate_qr_code, save_photo, generate_badge_id
 
 @visitor_bp.route('/visitors', methods=['POST'])
 @jwt_required()
@@ -42,11 +42,22 @@ def create_visitor():
     db.session.add(new_visitor)
     db.session.commit()
     
-    # Here you would send notification to host employee
-    # This is a placeholder for actual notification logic
+    # Generate QR code that encodes a check-in URL or badge ID
+    # For example, encoding a URL to check-in the visitor:
+    checkin_url = f"http://localhost:5000/api/visitors/{new_visitor.id}/check-in"
+    qr_code_image = generate_qr_code(checkin_url)
+    
+    # Optionally, you could store the QR code in the database or just return it in the response
     print(f"Notification sent to host ID {new_visitor.host_id} for visitor {new_visitor.full_name}")
     
-    return jsonify({'message': 'Visitor registered successfully', 'visitor': new_visitor.to_dict()}), 200
+    return jsonify({
+        'message': 'Visitor registered successfully',
+        'visitor': new_visitor.to_dict(),
+        'qr_code': qr_code_image
+    }), 200
+
+
+
 
 @visitor_bp.route('/visitors/<int:visitor_id>/approve', methods=['PUT'])
 @jwt_required()
@@ -63,6 +74,9 @@ def approve_visitor(visitor_id):
     
     return jsonify({'message': 'Visitor approved', 'visitor': visitor.to_dict()})
 
+
+
+
 @visitor_bp.route('/visitors/<int:visitor_id>/reject', methods=['PUT'])
 @jwt_required()
 def reject_visitor(visitor_id):
@@ -77,6 +91,9 @@ def reject_visitor(visitor_id):
     db.session.commit()
     
     return jsonify({'message': 'Visitor rejected', 'visitor': visitor.to_dict()})
+
+
+
 
 @visitor_bp.route('/visitors/<int:visitor_id>/checkin', methods=['PUT'])
 @jwt_required()
@@ -100,6 +117,9 @@ def check_in_visitor(visitor_id):
     
     return jsonify({'message': 'Visitor checked in', 'visitor': visitor.to_dict()})
 
+
+
+
 @visitor_bp.route('/visitors/<int:visitor_id>/checkout', methods=['PUT'])
 @jwt_required()
 def check_out_visitor(visitor_id):
@@ -114,6 +134,9 @@ def check_out_visitor(visitor_id):
     db.session.commit()
     
     return jsonify({'message': 'Visitor checked out', 'visitor': visitor.to_dict()})
+
+
+
 
 @visitor_bp.route('/visitors', methods=['GET'])
 @jwt_required()
@@ -131,6 +154,9 @@ def get_visitors():
     
     return jsonify({'visitors': [visitor.to_dict() for visitor in visitors]})
 
+
+
+
 @visitor_bp.route('/visitors/<int:visitor_id>', methods=['GET'])
 @jwt_required()
 def get_visitor(visitor_id):
@@ -143,6 +169,9 @@ def get_visitor(visitor_id):
         return jsonify({'message': 'Unauthorized'}), 403
     
     return jsonify({'visitor': visitor.to_dict()})
+
+
+
 
 @visitor_bp.route('/pre-approve', methods=['POST'])
 @jwt_required()
