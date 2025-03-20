@@ -6,7 +6,7 @@ from . import visitor_bp
 from models import db, User, Visitor
 from utils.helpers import generate_qr_code, save_photo, generate_badge_id
 
-@visitor_bp.route('/visitors', methods=['POST'])
+@visitor_bp.route('/visitors/not-pre-approve', methods=['POST'])
 @jwt_required()
 def create_visitor():
     data = request.json
@@ -23,37 +23,24 @@ def create_visitor():
     # Create new visitor
     new_visitor = Visitor(
         full_name=data['full_name'],
-        email=data.get('email'),
-        phone=data.get('phone'),
+        email=data['email'],
+        phone=data['phone'],
         company=data.get('company'),
         purpose=data['purpose'],
         host_id=data['host_id'],
         photo_path=photo_path,
         badge_id=badge_id,
-        pre_approved=data.get('pre_approved', False)
+        pre_approved=False
     )
-    
-    # Set approval window if pre-approved
-    if new_visitor.pre_approved and 'approval_window_start' in data and 'approval_window_end' in data:
-        new_visitor.approval_window_start = datetime.fromisoformat(data['approval_window_start'])
-        new_visitor.approval_window_end = datetime.fromisoformat(data['approval_window_end'])
-        new_visitor.status = 'approved'
     
     db.session.add(new_visitor)
     db.session.commit()
     
-    # Generate QR code that encodes a check-in URL or badge ID
-    # For example, encoding a URL to check-in the visitor:
-    checkin_url = f"http://localhost:5000/api/visitors/{new_visitor.id}/check-in"
-    qr_code_image = generate_qr_code(checkin_url)
-    
-    # Optionally, you could store the QR code in the database or just return it in the response
     print(f"Notification sent to host ID {new_visitor.host_id} for visitor {new_visitor.full_name}")
     
     return jsonify({
         'message': 'Visitor registered successfully',
-        'visitor': new_visitor.to_dict(),
-        'qr_code': qr_code_image
+        'visitor': new_visitor.to_dict()
     }), 200
 
 
@@ -71,8 +58,19 @@ def approve_visitor(visitor_id):
     
     visitor.status = 'approved'
     db.session.commit()
+
+    # Generate QR code that encodes a check-in URL or badge ID
+    # For example, encoding a URL to check-in the visitor:
+    checkin_url = f"http://localhost:5000/api/visitors/{visitor.id}/check-in"
+    qr_code_image = generate_qr_code(checkin_url)
+
+    print(f"approval QR code sent to {visitor.email or visitor.phone}")
     
-    return jsonify({'message': 'Visitor approved', 'visitor': visitor.to_dict()})
+    return jsonify({
+        'message': 'Visitor approved',
+        'visitor': visitor.to_dict(),
+        'qr_code': qr_code_image
+    })
 
 
 
@@ -89,13 +87,15 @@ def reject_visitor(visitor_id):
     
     visitor.status = 'rejected'
     db.session.commit()
+
+    print(f"rejection sent to {visitor.email or visitor.phone}")
     
     return jsonify({'message': 'Visitor rejected', 'visitor': visitor.to_dict()})
 
 
 
 
-@visitor_bp.route('/visitors/<int:visitor_id>/checkin', methods=['PUT'])
+@visitor_bp.route('/visitors/<int:visitor_id>/check-in', methods=['PUT'])
 @jwt_required()
 def check_in_visitor(visitor_id):
     visitor = Visitor.query.get_or_404(visitor_id)
@@ -120,7 +120,7 @@ def check_in_visitor(visitor_id):
 
 
 
-@visitor_bp.route('/visitors/<int:visitor_id>/checkout', methods=['PUT'])
+@visitor_bp.route('/visitors/<int:visitor_id>/check-out', methods=['PUT'])
 @jwt_required()
 def check_out_visitor(visitor_id):
     visitor = Visitor.query.get_or_404(visitor_id)
@@ -132,6 +132,8 @@ def check_out_visitor(visitor_id):
     visitor.status = 'checked_out'
     visitor.check_out_time = datetime.now()
     db.session.commit()
+
+    print(f"Thank you for visiting, {visitor.email or visitor.phone}")
     
     return jsonify({'message': 'Visitor checked out', 'visitor': visitor.to_dict()})
 
@@ -173,27 +175,27 @@ def get_visitor(visitor_id):
 
 
 
-@visitor_bp.route('/pre-approve', methods=['POST'])
+@visitor_bp.route('visitors/pre-approve', methods=['POST'])
 @jwt_required()
 def pre_approve_visitor():
     data = request.json
     current_user_id = get_jwt_identity()
     
     # Check daily limit (e.g., max 5 visitors per employee per day)
-    today = datetime.now().date()
-    tomorrow = today + timedelta(days=1)
-    today_start = datetime.combine(today, datetime.min.time())
-    today_end = datetime.combine(tomorrow, datetime.min.time())
+    # today = datetime.now().date()
+    # tomorrow = today + timedelta(days=1)
+    # today_start = datetime.combine(today, datetime.min.time())
+    # today_end = datetime.combine(tomorrow, datetime.min.time())
     
-    count = Visitor.query.filter(
-        Visitor.host_id == current_user_id,
-        Visitor.pre_approved == True,
-        Visitor.approval_window_start >= today_start,
-        Visitor.approval_window_start < today_end
-    ).count()
+    # count = Visitor.query.filter(
+    #     Visitor.host_id == current_user_id,
+    #     Visitor.pre_approved == True,
+    #     Visitor.approval_window_start >= today_start,
+    #     Visitor.approval_window_start < today_end
+    # ).count()
     
-    if count >= 5:  # Assuming max 5 pre-approvals per day
-        return jsonify({'message': 'Daily pre-approval limit reached'}), 400
+    # if count >= 5:  # Assuming max 5 pre-approvals per day
+    #     return jsonify({'message': 'Daily pre-approval limit reached'}), 400
     
     # Process photo if provided
     photo_path = None
@@ -206,8 +208,8 @@ def pre_approve_visitor():
     # Create new pre-approved visitor
     new_visitor = Visitor(
         full_name=data['full_name'],
-        email=data.get('email'),
-        phone=data.get('phone'),
+        email=data['email'],
+        phone=data['phone'],
         company=data.get('company'),
         purpose=data['purpose'],
         host_id=current_user_id,
@@ -221,9 +223,12 @@ def pre_approve_visitor():
     
     db.session.add(new_visitor)
     db.session.commit()
+
+    checkin_url = f"http://localhost:5000/api/visitors/{new_visitor.id}/check-in"
+    qr_code_image = generate_qr_code(checkin_url)
     
     # Here you would send QR code/e-pass to visitor
     # This is a placeholder for actual notification logic
     print(f"Pre-approval QR code sent to {new_visitor.email or new_visitor.phone}")
     
-    return jsonify({'message': 'Visitor pre-approved successfully', 'visitor': new_visitor.to_dict()}), 201
+    return jsonify({'message': 'Visitor pre-approved successfully', 'visitor': new_visitor.to_dict()}), 200

@@ -11,6 +11,7 @@ from routes import auth_bp, visitor_bp, dashboard_bp
 def create_app(config_name='default'):
     app = Flask(__name__)
     app.config.from_object(config[config_name])
+    # app.config['MAX_CONTENT_LENGTH'] = 2 * 1024 * 1024  # 2MB limit
     
     # Initialize extensions
     CORS(app, supports_credentials=True, origins=["*"], allow_headers=["Content-Type", "Authorization"])

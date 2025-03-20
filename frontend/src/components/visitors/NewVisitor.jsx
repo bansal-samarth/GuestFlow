@@ -1,10 +1,10 @@
-// src/components/dashboard/NewVisitor.jsx
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import { FaUser, FaEnvelope, FaPhone, FaBuilding, FaCalendar, FaCamera } from 'react-icons/fa';
 import QRCode from 'react-qr-code';
+import { jwtDecode } from 'jwt-decode';
 
 const NewVisitor = () => {
   const navigate = useNavigate();
@@ -23,6 +23,39 @@ const NewVisitor = () => {
   const [qrCodeData, setQrCodeData] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
 
+  const sendEmail = async (visitorData, isPreApproved) => {
+    const templateParams = {
+      to_email: visitorData.email,
+      full_name: visitorData.full_name,
+      company: visitorData.company,
+      purpose: visitorData.purpose,
+      checkin_url: isPreApproved ? `http://localhost:5000/api/visitors/${visitorData.id}/check-in` : '',
+      qr_code: isPreApproved ? `<QR>${visitorData.badge_id}</QR>` : ''
+    };
+
+    try {
+      await emailjs.send(
+        'YOUR_EMAILJS_SERVICE_ID',
+        isPreApproved ? 'YOUR_PREAPPROVED_TEMPLATE_ID' : 'YOUR_REGULAR_TEMPLATE_ID',
+        templateParams,
+        'YOUR_EMAILJS_PUBLIC_KEY'
+      );
+      toast.success('Confirmation email sent!');
+    } catch (emailError) {
+      console.error('Email failed to send:', emailError);
+      toast.error('Email notification failed, but visitor was created');
+    }
+  };
+
+
+  // Get current user ID from JWT token
+  const getCurrentUserId = () => {
+    const token = localStorage.getItem('token');
+    if (!token) return null;
+    const decoded = jwtDecode(token);
+    return decoded.sub; // Assuming JWT subject contains user ID
+  };
+
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     setFormData(prev => ({
@@ -33,43 +66,81 @@ const NewVisitor = () => {
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setFormData(prev => ({ ...prev, photo: reader.result }));
-      };
-      reader.readAsDataURL(file);
+    if (!file) return;
+
+    if (file.size > 2 * 1024 * 1024) { // 2MB limit
+      toast.error('Photo size should be less than 2MB');
+      return;
     }
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setFormData(prev => ({ ...prev, photo: reader.result }));
+    };
+    reader.readAsDataURL(file);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    if (!formData.photo) {
+      toast.error('Please upload a visitor photo');
+      return;
+    }
+
     setIsLoading(true);
 
     try {
-      const response = await axios.post('http://localhost:5000/api/visitors', formData, {
+      const endpoint = formData.pre_approved 
+        ? '/visitors/pre-approve' 
+        : '/visitors/not-pre-approve';
+
+      const payload = formData.pre_approved ? {
+        full_name: formData.full_name,
+        email: formData.email,
+        phone: formData.phone,
+        company: formData.company,
+        purpose: formData.purpose,
+        photo: formData.photo,
+        approval_window_start: formData.approval_window_start,
+        approval_window_end: formData.approval_window_end
+      } : {
+        full_name: formData.full_name,
+        email: formData.email,
+        phone: formData.phone,
+        company: formData.company,
+        purpose: formData.purpose,
+        host_id: formData.host_id,
+        photo: formData.photo
+      };
+
+      const response = await axios.post(`http://localhost:5000/api${endpoint}`, payload, {
         headers: {
           Authorization: `Bearer ${localStorage.getItem('token')}`
         }
       });
 
-      toast.success('Visitor created successfully!');
-      setQrCodeData(response.data.qr_code);
+      toast.success(`Visitor ${formData.pre_approved ? 'pre-approved' : 'registered'} successfully!`);
+      setQrCodeData(response.data.visitor.badge_id);
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to create visitor');
+      toast.error(error.response?.data?.message || 'Failed to process visitor');
     } finally {
       setIsLoading(false);
     }
   };
 
+  // QR Code Display (only for pre-approved)
   if (qrCodeData) {
     return (
       <div className="max-w-2xl mx-auto p-6 bg-white rounded-xl shadow-lg">
-        <h2 className="text-2xl font-bold text-emerald-800 mb-4">Visitor Created Successfully!</h2>
+        <h2 className="text-2xl font-bold text-emerald-800 mb-4">Pre-approval Successful!</h2>
         <div className="text-center">
           <p className="mb-4 text-emerald-600">Scan this QR code for check-in:</p>
           <div className="inline-block p-4 bg-white rounded-lg border border-emerald-100">
             <QRCode value={qrCodeData} size={256} />
+            <p className="mt-4 text-sm text-emerald-600">
+              Check-in URL: <span className="font-mono">{qrCodeData}</span>
+            </p>
           </div>
           <button
             onClick={() => navigate('/dashboard/visitors')}
@@ -84,7 +155,9 @@ const NewVisitor = () => {
 
   return (
     <div className="max-w-2xl mx-auto p-6 bg-white rounded-xl shadow-lg">
-      <h2 className="text-2xl font-bold text-emerald-800 mb-6">Register New Visitor</h2>
+      <h2 className="text-2xl font-bold text-emerald-800 mb-6">
+        {formData.pre_approved ? 'Pre-approve' : 'Register'} New Visitor
+      </h2>
       
       <form onSubmit={handleSubmit} className="space-y-4">
         {/* Full Name */}
@@ -110,7 +183,7 @@ const NewVisitor = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {/* Email */}
           <div>
-            <label className="block text-emerald-800 mb-2 font-medium">Email</label>
+            <label className="block text-emerald-800 mb-2 font-medium">Email *</label>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 flex items-center pl-4 text-emerald-500">
                 <FaEnvelope className="w-5 h-5" />
@@ -122,13 +195,14 @@ const NewVisitor = () => {
                 placeholder="john@example.com"
                 value={formData.email}
                 onChange={handleChange}
+                required
               />
             </div>
           </div>
 
           {/* Phone */}
           <div>
-            <label className="block text-emerald-800 mb-2 font-medium">Phone</label>
+            <label className="block text-emerald-800 mb-2 font-medium">Phone *</label>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 flex items-center pl-4 text-emerald-500">
                 <FaPhone className="w-5 h-5" />
@@ -140,6 +214,7 @@ const NewVisitor = () => {
                 placeholder="+1 234 567 890"
                 value={formData.phone}
                 onChange={handleChange}
+                required
               />
             </div>
           </div>
@@ -158,26 +233,28 @@ const NewVisitor = () => {
                 type="text"
                 name="company"
                 className="w-full pl-12 pr-4 py-3 rounded-lg border border-emerald-100 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 outline-none transition-all"
-                placeholder="Company Name"
+                placeholder="Company Name (optional)"
                 value={formData.company}
                 onChange={handleChange}
               />
             </div>
           </div>
 
-          {/* Host ID */}
-          <div>
-            <label className="block text-emerald-800 mb-2 font-medium">Host ID *</label>
-            <input
-              type="text"
-              name="host_id"
-              className="w-full pl-12 pr-4 py-3 rounded-lg border border-emerald-100 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 outline-none transition-all"
-              placeholder="Host Employee ID"
-              value={formData.host_id}
-              onChange={handleChange}
-              required
-            />
-          </div>
+          {/* Host ID (only for non-pre-approved) */}
+          {!formData.pre_approved && (
+            <div>
+              <label className="block text-emerald-800 mb-2 font-medium">Host ID *</label>
+              <input
+                type="text"
+                name="host_id"
+                className="w-full pl-12 pr-4 py-3 rounded-lg border border-emerald-100 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 outline-none transition-all"
+                placeholder="Host Employee ID"
+                value={formData.host_id}
+                onChange={handleChange}
+                required={!formData.pre_approved}
+              />
+            </div>
+          )}
         </div>
 
         {/* Purpose */}
@@ -196,7 +273,10 @@ const NewVisitor = () => {
 
         {/* Photo Upload */}
         <div>
-          <label className="block text-emerald-800 mb-2 font-medium">Visitor Photo</label>
+          <label className="block text-emerald-800 mb-2 font-medium">
+            Visitor Photo *
+            <span className="text-sm text-gray-500 ml-2">(max 2MB)</span>
+          </label>
           <div className="flex items-center space-x-4">
             <label className="flex items-center px-4 py-2 bg-emerald-100 text-emerald-800 rounded-lg cursor-pointer hover:bg-emerald-200 transition-colors">
               <FaCamera className="mr-2" />
@@ -206,6 +286,7 @@ const NewVisitor = () => {
                 accept="image/*"
                 className="hidden"
                 onChange={handleFileChange}
+                required
               />
             </label>
             {formData.photo && (
@@ -245,7 +326,7 @@ const NewVisitor = () => {
                     className="w-full pl-12 pr-4 py-3 rounded-lg border border-emerald-100 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 outline-none transition-all"
                     value={formData.approval_window_start}
                     onChange={handleChange}
-                    required={formData.pre_approved}
+                    required
                   />
                 </div>
               </div>
@@ -262,7 +343,7 @@ const NewVisitor = () => {
                     className="w-full pl-12 pr-4 py-3 rounded-lg border border-emerald-100 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 outline-none transition-all"
                     value={formData.approval_window_end}
                     onChange={handleChange}
-                    required={formData.pre_approved}
+                    required
                   />
                 </div>
               </div>
@@ -279,7 +360,7 @@ const NewVisitor = () => {
             {isLoading ? (
               <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white"></div>
             ) : (
-              'Register Visitor'
+              formData.pre_approved ? 'Pre-approve Visitor' : 'Register Visitor'
             )}
           </button>
         </div>
