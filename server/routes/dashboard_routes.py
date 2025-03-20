@@ -6,6 +6,8 @@ from . import dashboard_bp
 from models import User, Visitor
 
 @dashboard_bp.route('/dashboard/stats', methods=['GET'])
+
+
 @jwt_required()
 def get_dashboard_stats():
     current_user_id = get_jwt_identity()

@@ -1,7 +1,7 @@
 from flask import Blueprint
 
 # Create blueprints
-auth_bp = Blueprint('auth', __name__, url_prefix='/api')
+auth_bp = Blueprint('auth', __name__, url_prefix='/api/auth')
 visitor_bp = Blueprint('visitor', __name__, url_prefix='/api')
 dashboard_bp = Blueprint('dashboard', __name__, url_prefix='/api')
 

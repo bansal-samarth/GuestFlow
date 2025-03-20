@@ -13,7 +13,7 @@ def create_app(config_name='default'):
     app.config.from_object(config[config_name])
     
     # Initialize extensions
-    CORS(app)
+    CORS(app, supports_credentials=True, origins=["*"], allow_headers=["Content-Type", "Authorization"])
     db.init_app(app)
     jwt = JWTManager(app)
     
