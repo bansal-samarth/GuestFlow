@@ -4,6 +4,7 @@ import axios from 'axios';
 import { toast } from 'react-toastify';
 import { FaUser, FaEnvelope, FaPhone, FaBuilding, FaCalendar, FaCamera } from 'react-icons/fa';
 import QRCode from 'react-qr-code';
+import emailjs from '@emailjs/browser';
 import { jwtDecode } from 'jwt-decode';
 
 const NewVisitor = () => {
@@ -22,31 +23,47 @@ const NewVisitor = () => {
   });
   const [qrCodeData, setQrCodeData] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [registrationSuccess, setRegistrationSuccess] = useState(false);
 
   const sendEmail = async (visitorData, isPreApproved) => {
+    // Make sure we have an email to send to
+    if (!visitorData.email) {
+      console.error('Cannot send email: visitor email is missing');
+      toast.error('Email notification failed: recipient email is missing');
+      return;
+    }
+
     const templateParams = {
-      to_email: visitorData.email,
-      full_name: visitorData.full_name,
-      company: visitorData.company,
+      // Make sure to include the required EmailJS template variables
+      name: visitorData.full_name,
+      email: visitorData.email,
+      from_name: 'GuestFlow Team',
+      company: 'GuestFlow Inc.',
       purpose: visitorData.purpose,
-      checkin_url: isPreApproved ? `http://localhost:5000/api/visitors/${visitorData.id}/check-in` : '',
-      qr_code: isPreApproved ? `<QR>${visitorData.badge_id}</QR>` : ''
+      visit_date: new Date().toLocaleDateString(),
+      host_id: visitorData.host_id || 'N/A',
+      approval_start: visitorData.approval_window_start || 'N/A',
+      approval_end: visitorData.approval_window_end || 'N/A'
     };
 
     try {
-      await emailjs.send(
-        'YOUR_EMAILJS_SERVICE_ID',
-        isPreApproved ? 'YOUR_PREAPPROVED_TEMPLATE_ID' : 'YOUR_REGULAR_TEMPLATE_ID',
+      const response = await emailjs.send(
+        'service_t9l0pxl',
+        isPreApproved ? 'PREAPPROVED_TEMPLATE' : 'REGULAR_TEMPLATE',
         templateParams,
-        'YOUR_EMAILJS_PUBLIC_KEY'
+        '6qwCch5e33qe914eE'
       );
-      toast.success('Confirmation email sent!');
+      
+      if (response.status === 200) {
+        toast.success('Confirmation email sent!');
+      } else {
+        throw new Error(`Email failed with status: ${response.status}`);
+      }
     } catch (emailError) {
       console.error('Email failed to send:', emailError);
-      toast.error('Email notification failed, but visitor was created');
+      toast.error(`Email notification failed: ${emailError.text || 'Unknown error'}`);
     }
   };
-
 
   // Get current user ID from JWT token
   const getCurrentUserId = () => {
@@ -88,6 +105,11 @@ const NewVisitor = () => {
       return;
     }
 
+    if (!formData.email) {
+      toast.error('Email address is required');
+      return;
+    }
+
     setIsLoading(true);
 
     try {
@@ -120,31 +142,69 @@ const NewVisitor = () => {
         }
       });
 
+      // Make sure we have a valid visitor object from the response
+      const visitorData = response.data.visitor;
+      
+      if (!visitorData) {
+        throw new Error('Invalid response from server');
+      }
+
+      // Only set QR code data for pre-approved visitors
+      if (formData.pre_approved) {
+        const checkInUrl = `http://localhost:5000/api/visitors/${visitorData.id}/check-in`;
+        setQrCodeData(checkInUrl);
+      }
+
+      // Send corresponding email based on pre-approval status
+      await sendEmail(visitorData, formData.pre_approved);
+
       toast.success(`Visitor ${formData.pre_approved ? 'pre-approved' : 'registered'} successfully!`);
-      setQrCodeData(response.data.visitor.badge_id);
+      setRegistrationSuccess(true);
     } catch (error) {
+      console.error('Registration error:', error);
       toast.error(error.response?.data?.message || 'Failed to process visitor');
     } finally {
       setIsLoading(false);
     }
   };
 
-  // QR Code Display (only for pre-approved)
-  if (qrCodeData) {
+  // Display success message and QR code for pre-approved visitors
+  if (registrationSuccess) {
     return (
       <div className="max-w-2xl mx-auto p-6 bg-white rounded-xl shadow-lg">
-        <h2 className="text-2xl font-bold text-emerald-800 mb-4">Pre-approval Successful!</h2>
-        <div className="text-center">
-          <p className="mb-4 text-emerald-600">Scan this QR code for check-in:</p>
-          <div className="inline-block p-4 bg-white rounded-lg border border-emerald-100">
-            <QRCode value={qrCodeData} size={256} />
-            <p className="mt-4 text-sm text-emerald-600">
-              Check-in URL: <span className="font-mono">{qrCodeData}</span>
-            </p>
-          </div>
+        {formData.pre_approved ? (
+          <>
+            <h2 className="text-2xl font-bold text-emerald-800 mb-4">Pre-approval Successful!</h2>
+            <div className="text-center">
+              <p className="mb-4 text-emerald-600">Scan this QR code for check-in:</p>
+              <div className="inline-block p-4 bg-white rounded-lg border border-emerald-100">
+                <QRCode value={qrCodeData} size={256} />
+                <p className="mt-4 text-sm text-emerald-600">
+                  Check-in URL: <span className="font-mono">{qrCodeData}</span>
+                </p>
+              </div>
+              <p className="mt-4 text-emerald-600">
+                An email with this QR code has been sent to the visitor's email address.
+              </p>
+            </div>
+          </>
+        ) : (
+          <>
+            <h2 className="text-2xl font-bold text-emerald-800 mb-4">Registration Successful!</h2>
+            <div className="text-center">
+              <p className="mb-4 text-emerald-600">
+                The visitor has been successfully registered. 
+              </p>
+              <p className="mb-4 text-emerald-600">
+                A confirmation email has been sent to {formData.email}.
+              </p>
+            </div>
+          </>
+        )}
+        <div className="text-center mt-6">
           <button
             onClick={() => navigate('/dashboard/visitors')}
-            className="mt-6 bg-emerald-600 text-white px-6 py-2 rounded-lg hover:bg-emerald-700 transition-colors"
+            className="bg-emerald-600 text-white px-6 py-2 rounded-lg hover:bg-emerald-700 transition-colors"
           >
             Back to Visitors List
           </button>
@@ -244,15 +304,20 @@ const NewVisitor = () => {
           {!formData.pre_approved && (
             <div>
               <label className="block text-emerald-800 mb-2 font-medium">Host ID *</label>
-              <input
-                type="text"
-                name="host_id"
-                className="w-full pl-12 pr-4 py-3 rounded-lg border border-emerald-100 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 outline-none transition-all"
-                placeholder="Host Employee ID"
-                value={formData.host_id}
-                onChange={handleChange}
-                required={!formData.pre_approved}
-              />
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 flex items-center pl-4 text-emerald-500">
+                  <FaUser className="w-5 h-5" />
+                </div>
+                <input
+                  type="text"
+                  name="host_id"
+                  className="w-full pl-12 pr-4 py-3 rounded-lg border border-emerald-100 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 outline-none transition-all"
+                  placeholder="Host Employee ID"
+                  value={formData.host_id}
+                  onChange={handleChange}
+                  required={!formData.pre_approved}
+                />
+              </div>
             </div>
           )}
         </div>
@@ -326,7 +391,7 @@ const NewVisitor = () => {
                     className="w-full pl-12 pr-4 py-3 rounded-lg border border-emerald-100 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 outline-none transition-all"
                     value={formData.approval_window_start}
                     onChange={handleChange}
-                    required
+                    required={formData.pre_approved}
                   />
                 </div>
               </div>
@@ -343,7 +408,7 @@ const NewVisitor = () => {
                     className="w-full pl-12 pr-4 py-3 rounded-lg border border-emerald-100 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 outline-none transition-all"
                     value={formData.approval_window_end}
                     onChange={handleChange}
-                    required
+                    required={formData.pre_approved}
                   />
                 </div>
               </div>

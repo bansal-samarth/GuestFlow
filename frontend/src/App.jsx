@@ -14,6 +14,7 @@ import NewVisitor from './components/visitors/NewVisitor';
 
 import './index.css';
 
+
 const App = () => {
   return (
     <Router>
