@@ -7,6 +7,8 @@ import QRCode from 'react-qr-code';
 import emailjs from '@emailjs/browser';
 import { jwtDecode } from 'jwt-decode';
 
+import qrcode from 'qrcode';
+
 const NewVisitor = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
@@ -33,6 +35,16 @@ const NewVisitor = () => {
       return;
     }
 
+    let qrCodeBase64 = '';
+    if (isPreApproved) {
+      try {
+        const checkInUrl = `http://localhost:5000/api/visitors/${visitorData.id}/check-in`;
+        qrCodeBase64 = await qrcode.toDataURL(checkInUrl, { width: 200 });
+      } catch (err) {
+        console.error('Error generating QR code:', err);
+      }
+    }
+
     const templateParams = {
       // Make sure to include the required EmailJS template variables
       name: visitorData.full_name,
@@ -43,7 +55,8 @@ const NewVisitor = () => {
       visit_date: new Date().toLocaleDateString(),
       host_id: visitorData.host_id || 'N/A',
       approval_start: visitorData.approval_window_start || 'N/A',
-      approval_end: visitorData.approval_window_end || 'N/A'
+      approval_end: visitorData.approval_window_end || 'N/A',
+      qr_code: qrCodeBase64
     };
 
     try {
