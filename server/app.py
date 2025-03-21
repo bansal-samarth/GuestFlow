@@ -2,6 +2,7 @@ from flask import Flask
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager
 from werkzeug.security import generate_password_hash
+from datetime import timedelta
 import os
 
 from config import config
@@ -12,6 +13,9 @@ def create_app(config_name='default'):
     app = Flask(__name__)
     app.config.from_object(config[config_name])
     # app.config['MAX_CONTENT_LENGTH'] = 2 * 1024 * 1024  # 2MB limit
+
+    # Set JWT access token expiration to 1 hour
+    app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(hours=1)
     
     # Initialize extensions
     CORS(app, supports_credentials=True, origins=["*"], allow_headers=["Content-Type", "Authorization"])

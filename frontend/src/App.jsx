@@ -28,7 +28,7 @@ const App = () => {
         <Route element={<ProtectedRoute />}>
           <Route path="/dashboard" element={<DashboardLayout />}>
             <Route index element={<DashboardHome />} />
-            <Route path="visitors" element={<Visitors />} />
+            <Route path="/dashboard/visitors" element={<Visitors />} />
             <Route path="/dashboard/visitors/new" element={<NewVisitor />} />
             {/* Add other dashboard routes here */}
           </Route>

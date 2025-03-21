@@ -33,5 +33,6 @@ class Visitor(db.Model):
             'check_out_time': self.check_out_time.isoformat() if self.check_out_time else None,
             'pre_approved': self.pre_approved,
             'approval_window_start': self.approval_window_start.isoformat() if self.approval_window_start else None,
-            'approval_window_end': self.approval_window_end.isoformat() if self.approval_window_end else None
+            'approval_window_end': self.approval_window_end.isoformat() if self.approval_window_end else None,
+            'photo_path': self.photo_path  # Ensure photo_path is included
         }
