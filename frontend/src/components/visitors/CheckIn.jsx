@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { QrReader } from 'react-qr-reader';
 import axios from 'axios';
 
@@ -8,20 +8,25 @@ const CheckInPage = () => {
   const [errorMessage, setErrorMessage] = useState('');
   const [visitorInfo, setVisitorInfo] = useState(null);
   const [cameraActive, setCameraActive] = useState(false);
+  // Use a ref flag so re-renders do not affect its value
+  const hasScannedRef = useRef(false);
+  const qrScannerContainerRef = useRef(null);
 
   const handleDecode = async (result) => {
-    // Only process if we have a result and camera is active
-    if (!result || !result.text || !cameraActive) return;
-    
-    // First turn off camera to prevent multiple scans
-    setCameraActive(false);
-    
-    try {
-      setScanResult(result.text);
-      setStatus('scanning');
-      
-      console.log("Scanned QR Data:", result.text);
+    // Only process if we have a result, text exists, camera is active and we haven't scanned already
+    if (!result || !result.text || !cameraActive || hasScannedRef.current) return;
 
+    // Mark that we have scanned so that subsequent calls are ignored
+    hasScannedRef.current = true;
+
+    // Immediately turn off the camera to stop further scanning
+    setCameraActive(false);
+    setScanResult(result.text);
+    setStatus('scanning');
+
+    console.log("Scanned QR Data:", result.text);
+
+    try {
       // Extract visitor ID from QR code URL
       const visitorIdMatch = result.text.match(/\/visitors\/([^\/]+)\/check-in/);
       if (!visitorIdMatch) {
@@ -29,7 +34,6 @@ const CheckInPage = () => {
         setErrorMessage('Invalid QR code format.');
         return;
       }
-
       const visitorId = visitorIdMatch[1];
 
       // Get auth token from localStorage
@@ -49,27 +53,23 @@ const CheckInPage = () => {
 
       console.log("API Response:", response.data);
 
-      // If API returns an error message, handle it
-      if (response.data.error) {
-        setStatus('error');
-        setErrorMessage(response.data.error);
-        return;
-      }
-
-      // Ensure we're correctly interpreting the visitor status from the backend
-      const visitor = response.data.visitor;
-      setVisitorInfo(visitor);
-      
-      // Set appropriate status based on visitor's backend status
-      if (visitor.status === 'checked_in') {
-        setStatus('success');
-      } else if (visitor.status === 'pending_approval') {
-        setStatus('error');
-        setErrorMessage('Visitor must be approved before check-in.');
+      // Check if the API returned visitor data
+      if (response.data.visitor) {
+        const visitor = response.data.visitor;
+        setVisitorInfo(visitor);
+        if (visitor.status === 'checked_in') {
+          setStatus('success');
+        } else if (visitor.status === 'pending_approval') {
+          setStatus('error');
+          setErrorMessage('Visitor must be approved before check-in.');
+        } else {
+          setStatus('success'); // Fallback to success
+        }
       } else {
-        setStatus('success'); // Default to success if status is unknown
+        // API did not return visitor info (e.g. already checked in)
+        setStatus('error');
+        setErrorMessage(response.data.message || 'An error occurred during check-in.');
       }
-      
     } catch (error) {
       setStatus('error');
       setErrorMessage(error.response?.data?.message || 'An error occurred during check-in.');
@@ -84,21 +84,39 @@ const CheckInPage = () => {
     setCameraActive(false);
   };
 
-  const resetScanner = () => {
+  // Instead of resetting the scanner state, reload the entire page
+  const reloadPage = () => {
+    window.location.reload();
+  };
+
+  const startCamera = () => {
+    // Use the original resetScanner logic for starting the camera
     setScanResult(null);
     setStatus('idle');
     setErrorMessage('');
     setVisitorInfo(null);
-  };
-
-  const startCamera = () => {
-    resetScanner();
+    hasScannedRef.current = false;
     setCameraActive(true);
   };
 
-  // Cleanup camera on unmount
+  // Force camera shutdown when cameraActive changes to false by replacing the container
   useEffect(() => {
-    return () => setCameraActive(false);
+    if (!cameraActive && qrScannerContainerRef.current) {
+      const parent = qrScannerContainerRef.current.parentNode;
+      const oldElement = qrScannerContainerRef.current;
+      if (parent) {
+        const newElement = oldElement.cloneNode(false);
+        parent.replaceChild(newElement, oldElement);
+        qrScannerContainerRef.current = newElement;
+      }
+    }
+  }, [cameraActive]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      setCameraActive(false);
+    };
   }, []);
 
   return (
@@ -124,7 +142,11 @@ const CheckInPage = () => {
           <p className="text-center text-gray-600">
             Scan the visitor's QR code to check them in
           </p>
-          <div className="border-2 border-gray-300 rounded-lg overflow-hidden relative" style={{ height: '300px' }}>
+          <div 
+            ref={qrScannerContainerRef}
+            className="border-2 border-gray-300 rounded-lg overflow-hidden relative" 
+            style={{ height: '300px' }}
+          >
             <QrReader
               onResult={handleDecode}
               constraints={{ 
@@ -133,13 +155,12 @@ const CheckInPage = () => {
                 height: { ideal: 720 }
               }}
               onError={handleError}
-              scanDelay={500}
               videoId="qr-video"
+              scanDelay={500}
               videoStyle={{
                 width: '100%',
                 height: '100%',
-                objectFit: 'cover',
-                display: 'block'
+                objectFit: 'cover'
               }}
               ViewFinder={() => (
                 <div className="absolute inset-0 flex items-center justify-center">
@@ -149,7 +170,7 @@ const CheckInPage = () => {
             />
           </div>
           <button
-            onClick={() => setCameraActive(false)}
+            onClick={reloadPage}
             className="w-full py-2 px-4 bg-gray-500 text-white font-semibold rounded-lg shadow-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-opacity-75"
           >
             Cancel
@@ -195,7 +216,7 @@ const CheckInPage = () => {
           )}
 
           <button
-            onClick={resetScanner}
+            onClick={reloadPage}
             className="w-full py-2 px-4 bg-blue-500 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-opacity-75 mt-4"
           >
             Scan Another QR Code
@@ -209,7 +230,7 @@ const CheckInPage = () => {
             <p className="font-medium text-red-700">Error: {errorMessage}</p>
           </div>
           <button
-            onClick={resetScanner}
+            onClick={reloadPage}
             className="w-full py-2 px-4 bg-blue-500 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-opacity-75"
           >
             Try Again
