@@ -10,6 +10,7 @@ import DashboardHome from './components/dashboard/DashboardHome';
 import Visitors from './components/visitors/Visitors';
 import ProtectedRoute from './components/common/ProtectedRoute';
 import NewVisitor from './components/visitors/NewVisitor';
+import CheckIn from './components/visitors/CheckIn';
 
 
 import './index.css';
@@ -30,6 +31,7 @@ const App = () => {
             <Route index element={<DashboardHome />} />
             <Route path="/dashboard/visitors" element={<Visitors />} />
             <Route path="/dashboard/visitors/new" element={<NewVisitor />} />
+            <Route path="/dashboard/visitors/check-in" element={<CheckIn />} />
             {/* Add other dashboard routes here */}
           </Route>
         </Route>

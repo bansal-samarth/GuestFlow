@@ -30,7 +30,7 @@ def save_photo(photo_data):
             's3',
             region_name=AWS_REGION,
             aws_access_key_id="aws_access_key_id",
-            aws_secret_access_key="aws_access_key_id"
+            aws_secret_access_key="aws_secret_access_key"
         )
         
         # Create in-memory file-like object

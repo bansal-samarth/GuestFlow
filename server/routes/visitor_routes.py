@@ -101,8 +101,11 @@ def check_in_visitor(visitor_id):
     visitor = Visitor.query.get_or_404(visitor_id)
     
     # Check if visitor is approved
-    if visitor.status != 'approved':
+    if visitor.status != 'approved' and visitor.status != 'checked_in':
         return jsonify({'message': 'Visitor must be approved first'}), 400
+    
+    if visitor.status == 'checked_in':
+        return jsonify({'message': 'Visitor is already checkedIn'}), 201
     
     # Check if pre-approved visitor is within the approval window
     if visitor.pre_approved:
