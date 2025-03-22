@@ -12,6 +12,7 @@ import ProtectedRoute from './components/common/ProtectedRoute';
 import NewVisitor from './components/visitors/NewVisitor';
 import CheckIn from './components/visitors/CheckIn';
 import PendingVisitors from './components/visitors/Pending';
+import CheckOutPage from './components/visitors/CheckOut';
 
 
 import './index.css';
@@ -34,6 +35,7 @@ const App = () => {
             <Route path="/dashboard/visitors/new" element={<NewVisitor />} />
             <Route path="/dashboard/visitors/check-in" element={<CheckIn />} />
             <Route path="/dashboard/visitors/pending" element={<PendingVisitors />} />
+            <Route path="/dashboard/visitors/check-out" element={<CheckOutPage />} />
             {/* Add other dashboard routes here */}
           </Route>
         </Route>

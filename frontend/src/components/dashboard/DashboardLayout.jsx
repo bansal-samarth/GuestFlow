@@ -25,6 +25,7 @@ const DashboardLayout = () => {
     { path: '/dashboard/visitors/new', name: 'Add Visitor', icon: <FaUserPlus className="w-5 h-5" /> },
     { path: '/dashboard/visitors/pending', name: 'Pending', icon: <FaUserClock className="w-5 h-5" /> },
     { path: '/dashboard/visitors/check-in', name: 'Check In', icon: <FaUserCheck className="w-5 h-5" /> },
+    { path: '/dashboard/visitors/check-out', name: 'Check Out', icon: <FaUserCheck className="w-5 h-5" /> },
   ];
 
   // Close mobile menu when changing routes

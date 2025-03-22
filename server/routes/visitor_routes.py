@@ -96,17 +96,17 @@ def check_in_visitor(visitor_id):
     
     # Check if visitor is approved
     if visitor.status != 'approved' and visitor.status != 'checked_in':
-        return jsonify({'message': 'Visitor must be approved first'}), 400
+        return jsonify({'message': 'Visitor Must Be Approved First'}), 400
     
     if visitor.status == 'checked_in':
-        return jsonify({'message': 'Visitor is already checkedIn'}), 201
+        return jsonify({'message': 'Visitor Is Already Checked-In'}), 201
     
     # Check if pre-approved visitor is within the approval window
     if visitor.pre_approved:
         now = datetime.now()
         if visitor.approval_window_start and visitor.approval_window_end:
             if not (visitor.approval_window_start <= now <= visitor.approval_window_end):
-                return jsonify({'message': 'Approval window expired'}), 400
+                return jsonify({'message': 'Approval Window Expired'}), 400
     
     visitor.status = 'checked_in'
     visitor.check_in_time = datetime.now()
@@ -123,8 +123,11 @@ def check_out_visitor(visitor_id):
     visitor = Visitor.query.get_or_404(visitor_id)
     
     # Check if visitor is checked in
-    if visitor.status != 'checked_in':
+    if visitor.status != 'checked_in' and visitor.status != 'checked_out':
         return jsonify({'message': 'Visitor must be checked in first'}), 400
+    
+    if visitor.status == 'checked_out':
+        return jsonify({'message': 'Visitor Is Already Checked-Out'}), 201
     
     visitor.status = 'checked_out'
     visitor.check_out_time = datetime.now()
