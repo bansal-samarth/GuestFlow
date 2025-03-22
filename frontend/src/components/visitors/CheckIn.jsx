@@ -120,32 +120,55 @@ const CheckInPage = () => {
   }, []);
 
   return (
-    <div className="max-w-md mx-auto my-10 p-6 bg-white rounded-lg shadow-xl">
-      <h1 className="text-2xl font-bold text-center mb-6">Visitor Check-in</h1>
+    <div className="max-w-md mx-auto my-10 p-8 bg-white rounded-xl shadow-xl border border-gray-100">
+      <div className="flex items-center justify-center mb-6">
+        <div className="bg-green-50 p-3 rounded-full">
+          <svg className="h-8 w-8 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+          </svg>
+        </div>
+        <h1 className="text-2xl font-bold text-gray-800 ml-3">Visitor Check-in</h1>
+      </div>
 
       {status === 'idle' && !cameraActive && (
-        <div className="space-y-4">
-          <p className="text-center text-gray-600">
-            Click the button below to start scanning the visitor's QR code
-          </p>
+        <div className="space-y-6">
+          <div className="bg-green-50 rounded-lg p-4 text-center">
+            <p className="text-green-800 font-medium">
+              Welcome to the visitor management system
+            </p>
+            <p className="text-green-600 text-sm mt-1">
+              Scan a QR code to check in your visitors
+            </p>
+          </div>
           <button
             onClick={startCamera}
-            className="w-full py-2 px-4 bg-blue-500 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-opacity-75"
+            className="w-full py-3 px-4 bg-green-600 text-white font-semibold rounded-lg shadow-md hover:bg-green-700 transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-75"
           >
-            Start Scanner
+            <div className="flex items-center justify-center">
+              <svg className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+              Start Scanner
+            </div>
           </button>
         </div>
       )}
 
       {cameraActive && (
-        <div className="space-y-4">
-          <p className="text-center text-gray-600">
-            Scan the visitor's QR code to check them in
-          </p>
+        <div className="space-y-5">
+          <div className="bg-green-50 rounded-lg p-4">
+            <p className="text-center text-green-800 font-medium">
+              Scan the visitor's QR code
+            </p>
+            <p className="text-center text-green-600 text-sm mt-1">
+              Position the QR code within the frame
+            </p>
+          </div>
           <div 
             ref={qrScannerContainerRef}
-            className="border-2 border-gray-300 rounded-lg overflow-hidden relative" 
-            style={{ height: '300px' }}
+            className="border-2 border-green-200 rounded-lg overflow-hidden relative" 
+            style={{ height: '320px' }}
           >
             <QrReader
               onResult={handleDecode}
@@ -164,79 +187,135 @@ const CheckInPage = () => {
               }}
               ViewFinder={() => (
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="border-2 border-blue-500 w-48 h-48 rounded-lg opacity-70"></div>
+                  <div className="border-2 border-green-500 w-48 h-48 rounded-lg opacity-70">
+                    <div className="absolute inset-0 border-4 border-transparent">
+                      <div className="absolute top-0 left-0 w-8 h-8 border-t-4 border-l-4 border-green-500 rounded-tl-lg"></div>
+                      <div className="absolute top-0 right-0 w-8 h-8 border-t-4 border-r-4 border-green-500 rounded-tr-lg"></div>
+                      <div className="absolute bottom-0 left-0 w-8 h-8 border-b-4 border-l-4 border-green-500 rounded-bl-lg"></div>
+                      <div className="absolute bottom-0 right-0 w-8 h-8 border-b-4 border-r-4 border-green-500 rounded-br-lg"></div>
+                    </div>
+                  </div>
                 </div>
               )}
             />
           </div>
           <button
             onClick={reloadPage}
-            className="w-full py-2 px-4 bg-gray-500 text-white font-semibold rounded-lg shadow-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-opacity-75"
+            className="w-full py-3 px-4 bg-gray-500 text-white font-semibold rounded-lg shadow-md hover:bg-gray-600 transition duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-opacity-75"
           >
-            Cancel
+            <div className="flex items-center justify-center">
+              <svg className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+              Cancel
+            </div>
           </button>
         </div>
       )}
 
       {status === 'scanning' && (
-        <div className="flex justify-center items-center h-40">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
-          <p className="ml-3 text-gray-600">Processing check-in...</p>
+        <div className="flex flex-col items-center justify-center p-8">
+          <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-green-500"></div>
+          <p className="mt-4 text-green-700 font-medium">Processing check-in...</p>
+          <p className="text-green-600 text-sm mt-1">Please wait a moment</p>
         </div>
       )}
 
       {status === 'success' && (
-        <div className="space-y-4">
-          <div className="bg-green-100 border-l-4 border-green-500 p-4 rounded">
+        <div className="space-y-6">
+          <div className="bg-green-50 border-l-4 border-green-500 p-5 rounded-lg">
             <div className="flex items-center">
-              <svg className="h-6 w-6 text-green-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-              </svg>
-              <p className="font-medium text-green-700">Check-in successful!</p>
+              <div className="bg-green-100 p-2 rounded-full">
+                <svg className="h-6 w-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+              <div className="ml-3">
+                <p className="font-medium text-green-800">Check-in successful!</p>
+                <p className="text-green-600 text-sm mt-1">Visitor has been checked in</p>
+              </div>
             </div>
           </div>
 
           {visitorInfo && (
-            <div className="mt-4 border border-gray-200 rounded-lg p-4">
-              <h3 className="font-semibold text-lg mb-2">Visitor Information</h3>
-              <div className="grid grid-cols-2 gap-2 text-sm">
-                <span className="text-gray-600">Name:</span>
-                <span>{visitorInfo.full_name || 'N/A'}</span>
+            <div className="mt-4 bg-white border border-green-100 rounded-lg shadow-sm p-5">
+              <div className="flex items-center mb-4">
+                <svg className="h-5 w-5 text-green-700 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+                <h3 className="font-semibold text-green-800 text-lg">Visitor Information</h3>
+              </div>
 
-                <span className="text-gray-600">Email:</span>
-                <span>{visitorInfo.email || 'N/A'}</span>
+              <div className="space-y-3">
+                <div className="flex justify-between items-center py-2 border-b border-green-50">
+                  <span className="text-green-700 font-medium">Name</span>
+                  <span className="text-gray-800">{visitorInfo.full_name || 'N/A'}</span>
+                </div>
 
-                <span className="text-gray-600">Check-in time:</span>
-                <span>{visitorInfo.check_in_time ? new Date(visitorInfo.check_in_time).toLocaleString() : 'N/A'}</span>
+                <div className="flex justify-between items-center py-2 border-b border-green-50">
+                  <span className="text-green-700 font-medium">Email</span>
+                  <span className="text-gray-800">{visitorInfo.email || 'N/A'}</span>
+                </div>
 
-                <span className="text-gray-600">Status:</span>
-                <span className="capitalize">{visitorInfo.status || 'N/A'}</span>
+                <div className="flex justify-between items-center py-2 border-b border-green-50">
+                  <span className="text-green-700 font-medium">Check-in time</span>
+                  <span className="text-gray-800">{visitorInfo.check_in_time ? new Date(visitorInfo.check_in_time).toLocaleString() : 'N/A'}</span>
+                </div>
+
+                <div className="flex justify-between items-center py-2">
+                  <span className="text-green-700 font-medium">Status</span>
+                  <span className="bg-green-100 text-green-800 py-1 px-3 rounded-full text-sm capitalize">{visitorInfo.status || 'N/A'}</span>
+                </div>
               </div>
             </div>
           )}
 
           <button
             onClick={reloadPage}
-            className="w-full py-2 px-4 bg-blue-500 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-opacity-75 mt-4"
+            className="w-full py-3 px-4 bg-green-600 text-white font-semibold rounded-lg shadow-md hover:bg-green-700 transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-75 mt-6"
           >
-            Scan Another QR Code
+            <div className="flex items-center justify-center">
+              <svg className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+              Scan Another QR Code
+            </div>
           </button>
         </div>
       )}
 
       {status === 'error' && (
-        <div className="space-y-4">
-          <div className="bg-red-100 border-l-4 border-red-500 p-4 rounded">
-            <p className="font-medium text-red-700">Error: {errorMessage}</p>
+        <div className="space-y-6">
+          <div className="bg-red-50 border-l-4 border-red-500 p-5 rounded-lg">
+            <div className="flex items-center">
+              <div className="bg-red-100 p-2 rounded-full">
+                <svg className="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <div className="ml-3">
+                <p className="font-medium text-red-800">Error occurred</p>
+                <p className="text-red-600 text-sm mt-1">{errorMessage}</p>
+              </div>
+            </div>
           </div>
           <button
             onClick={reloadPage}
-            className="w-full py-2 px-4 bg-blue-500 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-opacity-75"
+            className="w-full py-3 px-4 bg-green-600 text-white font-semibold rounded-lg shadow-md hover:bg-green-700 transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-opacity-75"
           >
-            Try Again
+            <div className="flex items-center justify-center">
+              <svg className="h-5 w-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+              Try Again
+            </div>
           </button>
         </div>
       )}
+
+      <div className="mt-8 text-center text-green-600 text-xs">
+        © 2025 Visitor Management System
+      </div>
     </div>
   );
 };

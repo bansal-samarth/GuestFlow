@@ -2,11 +2,10 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { toast } from 'react-toastify';
-import { FaUser, FaEnvelope, FaPhone, FaBuilding, FaCalendar, FaCamera } from 'react-icons/fa';
+import { FaUser, FaEnvelope, FaPhone, FaBuilding, FaCalendar, FaCamera, FaCheckCircle } from 'react-icons/fa';
 import QRCode from 'react-qr-code';
 import emailjs from '@emailjs/browser';
 import { jwtDecode } from 'jwt-decode';
-
 import qrcode from 'qrcode';
 
 const NewVisitor = () => {
@@ -181,268 +180,304 @@ const NewVisitor = () => {
     }
   };
 
-  // Display success message and QR code for pre-approved visitors
+  // Success view
   if (registrationSuccess) {
     return (
-      <div className="max-w-2xl mx-auto p-6 bg-white rounded-xl shadow-lg">
-        {formData.pre_approved ? (
-          <>
-            <h2 className="text-2xl font-bold text-emerald-800 mb-4">Pre-approval Successful!</h2>
-            <div className="text-center">
-              <p className="mb-4 text-emerald-600">Scan this QR code for check-in:</p>
-              <div className="inline-block p-4 bg-white rounded-lg border border-emerald-100">
-                <QRCode value={qrCodeData} size={256} />
-                <p className="mt-4 text-sm text-emerald-600">
-                  Check-in URL: <span className="font-mono">{qrCodeData}</span>
+      <div className="min-h-screen bg-emerald-50 p-6 flex items-center justify-center">
+        <div className="max-w-2xl w-full bg-white rounded-xl shadow-lg overflow-hidden">
+          <div className="bg-gradient-to-r from-emerald-600 to-emerald-500 p-4 text-white">
+            <h2 className="text-2xl font-bold">
+              {formData.pre_approved ? "Pre-approval Successful" : "Registration Successful"}
+            </h2>
+          </div>
+          <div className="p-6 flex flex-col items-center">
+            <div className="w-20 h-20 bg-emerald-100 rounded-full flex items-center justify-center mb-4">
+              <FaCheckCircle className="w-12 h-12 text-emerald-600" />
+            </div>
+            <p className="text-emerald-800 text-lg mb-6">
+              {formData.pre_approved 
+                ? "Visitor has been pre-approved. QR code has been generated for check-in." 
+                : "Visitor has been successfully registered."}
+            </p>
+            {formData.pre_approved && (
+              <div className="bg-white p-4 border border-emerald-100 rounded-lg mb-4">
+                <QRCode value={qrCodeData} size={180} />
+                <p className="mt-3 text-sm text-center text-emerald-600">
+                  Scan this QR code at the reception
                 </p>
               </div>
-              <p className="mt-4 text-emerald-600">
-                An email with this QR code has been sent to the visitor's email address.
-              </p>
-            </div>
-          </>
-        ) : (
-          <>
-            <h2 className="text-2xl font-bold text-emerald-800 mb-4">Registration Successful!</h2>
-            <div className="text-center">
-              <p className="mb-4 text-emerald-600">
-                The visitor has been successfully registered. 
-              </p>
-              <p className="mb-4 text-emerald-600">
-                A confirmation email has been sent to {formData.email}.
-              </p>
-            </div>
-          </>
-        )}
-        <div className="text-center mt-6">
-          <button
-            onClick={() => navigate('/dashboard/visitors')}
-            className="bg-emerald-600 text-white px-6 py-2 rounded-lg hover:bg-emerald-700 transition-colors"
-          >
-            Back to Visitors List
-          </button>
+            )}
+            <p className="text-emerald-700 text-center mb-6">
+              A confirmation email has been sent to <span className="font-semibold">{formData.email}</span>
+            </p>
+            <button
+              onClick={() => navigate('/dashboard/visitors')}
+              className="bg-emerald-600 hover:bg-emerald-700 text-white px-8 py-2 rounded-lg transition-colors"
+            >
+              Back to Visitors List
+            </button>
+          </div>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="max-w-2xl mx-auto p-6 bg-white rounded-xl shadow-lg">
-      <h2 className="text-2xl font-bold text-emerald-800 mb-6">
-        {formData.pre_approved ? 'Pre-approve' : 'Register'} New Visitor
-      </h2>
-      
-      <form onSubmit={handleSubmit} className="space-y-4">
-        {/* Full Name */}
-        <div>
-          <label className="block text-emerald-800 mb-2 font-medium">Full Name *</label>
-          <div className="relative">
-            <div className="absolute inset-y-0 left-0 flex items-center pl-4 text-emerald-500">
-              <FaUser className="w-5 h-5" />
-            </div>
-            <input
-              type="text"
-              name="full_name"
-              className="w-full pl-12 pr-4 py-3 rounded-lg border border-emerald-100 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 outline-none transition-all"
-              placeholder="John Doe"
-              value={formData.full_name}
-              onChange={handleChange}
-              required
-            />
-          </div>
+    <div className="min-h-screen bg-emerald-50 py-6 px-4">
+      <div className="max-w-6xl mx-auto bg-white rounded-xl shadow-lg overflow-hidden">
+        {/* Header */}
+        <div className="bg-gradient-to-r from-emerald-700 to-emerald-500 p-5">
+          <h2 className="text-2xl font-bold text-white">
+            {formData.pre_approved ? 'Pre-approve' : 'Register'} New Visitor
+          </h2>
+          <p className="text-emerald-100 mt-1">Fill in the visitor details below</p>
         </div>
-
-        {/* Contact Information Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* Email */}
-          <div>
-            <label className="block text-emerald-800 mb-2 font-medium">Email *</label>
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 flex items-center pl-4 text-emerald-500">
-                <FaEnvelope className="w-5 h-5" />
-              </div>
-              <input
-                type="email"
-                name="email"
-                className="w-full pl-12 pr-4 py-3 rounded-lg border border-emerald-100 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 outline-none transition-all"
-                placeholder="john@example.com"
-                value={formData.email}
-                onChange={handleChange}
-                required
-              />
-            </div>
-          </div>
-
-          {/* Phone */}
-          <div>
-            <label className="block text-emerald-800 mb-2 font-medium">Phone *</label>
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 flex items-center pl-4 text-emerald-500">
-                <FaPhone className="w-5 h-5" />
-              </div>
-              <input
-                type="tel"
-                name="phone"
-                className="w-full pl-12 pr-4 py-3 rounded-lg border border-emerald-100 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 outline-none transition-all"
-                placeholder="+1 234 567 890"
-                value={formData.phone}
-                onChange={handleChange}
-                required
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* Company & Host ID */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* Company */}
-          <div>
-            <label className="block text-emerald-800 mb-2 font-medium">Company</label>
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 flex items-center pl-4 text-emerald-500">
-                <FaBuilding className="w-5 h-5" />
-              </div>
-              <input
-                type="text"
-                name="company"
-                className="w-full pl-12 pr-4 py-3 rounded-lg border border-emerald-100 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 outline-none transition-all"
-                placeholder="Company Name (optional)"
-                value={formData.company}
-                onChange={handleChange}
-              />
-            </div>
-          </div>
-
-          {/* Host ID (only for non-pre-approved) */}
-          {!formData.pre_approved && (
-            <div>
-              <label className="block text-emerald-800 mb-2 font-medium">Host ID *</label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 flex items-center pl-4 text-emerald-500">
-                  <FaUser className="w-5 h-5" />
-                </div>
-                <input
-                  type="text"
-                  name="host_id"
-                  className="w-full pl-12 pr-4 py-3 rounded-lg border border-emerald-100 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 outline-none transition-all"
-                  placeholder="Host Employee ID"
-                  value={formData.host_id}
-                  onChange={handleChange}
-                  required={!formData.pre_approved}
-                />
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Purpose */}
-        <div>
-          <label className="block text-emerald-800 mb-2 font-medium">Purpose *</label>
-          <textarea
-            name="purpose"
-            className="w-full px-4 py-3 rounded-lg border border-emerald-100 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 outline-none transition-all"
-            placeholder="Meeting purpose..."
-            rows="3"
-            value={formData.purpose}
-            onChange={handleChange}
-            required
-          />
-        </div>
-
-        {/* Photo Upload */}
-        <div>
-          <label className="block text-emerald-800 mb-2 font-medium">
-            Visitor Photo *
-            <span className="text-sm text-gray-500 ml-2">(max 2MB)</span>
-          </label>
-          <div className="flex items-center space-x-4">
-            <label className="flex items-center px-4 py-2 bg-emerald-100 text-emerald-800 rounded-lg cursor-pointer hover:bg-emerald-200 transition-colors">
-              <FaCamera className="mr-2" />
-              Upload Photo
-              <input
-                type="file"
-                accept="image/*"
-                className="hidden"
-                onChange={handleFileChange}
-                required
-              />
-            </label>
-            {formData.photo && (
-              <img 
-                src={formData.photo} 
-                alt="Preview" 
-                className="h-12 w-12 rounded-full object-cover"
-              />
-            )}
-          </div>
-        </div>
-
-        {/* Pre-approval Section */}
-        <div className="space-y-4 border-t border-emerald-100 pt-4">
-          <div className="flex items-center">
-            <input
-              type="checkbox"
-              name="pre_approved"
-              checked={formData.pre_approved}
-              onChange={handleChange}
-              className="h-4 w-4 text-emerald-600 rounded border-emerald-300 focus:ring-emerald-500"
-            />
-            <label className="ml-2 text-emerald-800 font-medium">Pre-approve Visitor</label>
-          </div>
-
-          {formData.pre_approved && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-emerald-800 mb-2 font-medium">Approval Start *</label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 flex items-center pl-4 text-emerald-500">
-                    <FaCalendar className="w-5 h-5" />
+        
+        {/* Main Form */}
+        <form onSubmit={handleSubmit} className="p-5">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Left column - Personal details */}
+            <div className="lg:col-span-2">
+              <div className="bg-white p-5 rounded-xl border border-emerald-100 shadow-sm h-full">
+                <h3 className="text-emerald-800 font-semibold mb-4 pb-2 border-b border-emerald-100">
+                  Visitor Information
+                </h3>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                  {/* Full Name */}
+                  <div>
+                    <label className="block text-emerald-700 mb-1 text-sm font-medium">Full Name <span className="text-red-500">*</span></label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-emerald-500">
+                        <FaUser className="w-4 h-4" />
+                      </div>
+                      <input
+                        type="text"
+                        name="full_name"
+                        className="w-full pl-10 py-2.5 rounded-lg bg-emerald-50 border border-emerald-200 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-400 outline-none transition-all"
+                        placeholder="Enter full name"
+                        value={formData.full_name}
+                        onChange={handleChange}
+                        required
+                      />
+                    </div>
                   </div>
-                  <input
-                    type="datetime-local"
-                    name="approval_window_start"
-                    className="w-full pl-12 pr-4 py-3 rounded-lg border border-emerald-100 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 outline-none transition-all"
-                    value={formData.approval_window_start}
-                    onChange={handleChange}
-                    required={formData.pre_approved}
-                  />
-                </div>
-              </div>
 
-              <div>
-                <label className="block text-emerald-800 mb-2 font-medium">Approval End *</label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 flex items-center pl-4 text-emerald-500">
-                    <FaCalendar className="w-5 h-5" />
+                  {/* Email */}
+                  <div>
+                    <label className="block text-emerald-700 mb-1 text-sm font-medium">Email <span className="text-red-500">*</span></label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-emerald-500">
+                        <FaEnvelope className="w-4 h-4" />
+                      </div>
+                      <input
+                        type="email"
+                        name="email"
+                        className="w-full pl-10 py-2.5 rounded-lg bg-emerald-50 border border-emerald-200 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-400 outline-none transition-all"
+                        placeholder="email@example.com"
+                        value={formData.email}
+                        onChange={handleChange}
+                        required
+                      />
+                    </div>
                   </div>
-                  <input
-                    type="datetime-local"
-                    name="approval_window_end"
-                    className="w-full pl-12 pr-4 py-3 rounded-lg border border-emerald-100 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 outline-none transition-all"
-                    value={formData.approval_window_end}
-                    onChange={handleChange}
-                    required={formData.pre_approved}
-                  />
+
+                  {/* Phone */}
+                  <div>
+                    <label className="block text-emerald-700 mb-1 text-sm font-medium">Phone <span className="text-red-500">*</span></label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-emerald-500">
+                        <FaPhone className="w-4 h-4" />
+                      </div>
+                      <input
+                        type="tel"
+                        name="phone"
+                        className="w-full pl-10 py-2.5 rounded-lg bg-emerald-50 border border-emerald-200 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-400 outline-none transition-all"
+                        placeholder="+1 (234) 567-8900"
+                        value={formData.phone}
+                        onChange={handleChange}
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  {/* Company */}
+                  <div>
+                    <label className="block text-emerald-700 mb-1 text-sm font-medium">Company</label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-emerald-500">
+                        <FaBuilding className="w-4 h-4" />
+                      </div>
+                      <input
+                        type="text"
+                        name="company"
+                        className="w-full pl-10 py-2.5 rounded-lg bg-emerald-50 border border-emerald-200 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-400 outline-none transition-all"
+                        placeholder="Organization (optional)"
+                        value={formData.company}
+                        onChange={handleChange}
+                      />
+                    </div>
+                  </div>
+                  
+                  {/* Host ID (only for non-pre-approved) */}
+                  {!formData.pre_approved && (
+                    <div className="md:col-span-2">
+                      <label className="block text-emerald-700 mb-1 text-sm font-medium">Host ID <span className="text-red-500">*</span></label>
+                      <div className="relative">
+                        <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-emerald-500">
+                          <FaUser className="w-4 h-4" />
+                        </div>
+                        <input
+                          type="text"
+                          name="host_id"
+                          className="w-full pl-10 py-2.5 rounded-lg bg-emerald-50 border border-emerald-200 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-400 outline-none transition-all"
+                          placeholder="Employee ID of the host"
+                          value={formData.host_id}
+                          onChange={handleChange}
+                          required={!formData.pre_approved}
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Purpose */}
+                  <div className="md:col-span-2">
+                    <label className="block text-emerald-700 mb-1 text-sm font-medium">Visit Purpose <span className="text-red-500">*</span></label>
+                    <textarea
+                      name="purpose"
+                      className="w-full px-4 py-2.5 rounded-lg bg-emerald-50 border border-emerald-200 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-400 outline-none transition-all"
+                      placeholder="Describe the purpose of the visit..."
+                      rows="2"
+                      value={formData.purpose}
+                      onChange={handleChange}
+                      required
+                    />
+                  </div>
                 </div>
               </div>
             </div>
-          )}
-        </div>
 
-        <div className="pt-6">
-          <button
-            type="submit"
-            disabled={isLoading}
-            className="w-full bg-emerald-600 text-white py-3 px-6 rounded-lg font-medium hover:bg-emerald-700 transition-colors flex items-center justify-center"
-          >
-            {isLoading ? (
-              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white"></div>
-            ) : (
-              formData.pre_approved ? 'Pre-approve Visitor' : 'Register Visitor'
-            )}
-          </button>
-        </div>
-      </form>
+            {/* Right column - Photo upload and pre-approval */}
+            <div className="lg:col-span-1">
+              <div className="space-y-5">
+                {/* Photo Upload Card */}
+                <div className="bg-white p-5 rounded-xl border border-emerald-100 shadow-sm">
+                  <h3 className="text-emerald-800 font-semibold mb-4 pb-2 border-b border-emerald-100">
+                    Visitor Photo
+                  </h3>
+                  
+                  <div className="flex flex-col items-center">
+                    {formData.photo ? (
+                      <div className="mb-4">
+                        <img 
+                          src={formData.photo} 
+                          alt="Preview" 
+                          className="h-36 w-36 rounded-full object-cover border-2 border-emerald-300 shadow-md"
+                        />
+                      </div>
+                    ) : (
+                      <div className="w-36 h-36 rounded-full bg-emerald-100 flex items-center justify-center mb-4">
+                        <FaCamera className="w-12 h-12 text-emerald-300" />
+                      </div>
+                    )}
+                    
+                    <label className="flex items-center justify-center w-full py-2.5 bg-gradient-to-r from-emerald-600 to-emerald-500 text-white rounded-lg cursor-pointer hover:from-emerald-700 hover:to-emerald-600 transition-all shadow-sm text-sm">
+                      <FaCamera className="mr-2" />
+                      {formData.photo ? 'Change Photo' : 'Upload Photo'}
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={handleFileChange}
+                        required
+                      />
+                    </label>
+                    <p className="text-xs text-emerald-600 mt-2 text-center">Max file size: 2MB</p>
+                  </div>
+                </div>
+
+                {/* Pre-approval Card */}
+                <div className="bg-white p-5 rounded-xl border border-emerald-100 shadow-sm">
+                  <div className="flex items-center justify-between mb-4 pb-2 border-b border-emerald-100">
+                    <h3 className="text-emerald-800 font-semibold">Pre-approval</h3>
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input
+                        type="checkbox"
+                        name="pre_approved"
+                        checked={formData.pre_approved}
+                        onChange={handleChange}
+                        className="sr-only peer"
+                      />
+                      <div className="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
+                    </label>
+                  </div>
+
+                  {formData.pre_approved && (
+                    <div className="space-y-3 animate-fadeIn">
+                      <div>
+                        <label className="block text-emerald-700 mb-1 text-sm font-medium">Start Date & Time <span className="text-red-500">*</span></label>
+                        <div className="relative">
+                          <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-emerald-500">
+                            <FaCalendar className="w-4 h-4" />
+                          </div>
+                          <input
+                            type="datetime-local"
+                            name="approval_window_start"
+                            className="w-full pl-10 py-2.5 rounded-lg bg-emerald-50 border border-emerald-200 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-400 outline-none transition-all"
+                            value={formData.approval_window_start}
+                            onChange={handleChange}
+                            required={formData.pre_approved}
+                          />
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className="block text-emerald-700 mb-1 text-sm font-medium">End Date & Time <span className="text-red-500">*</span></label>
+                        <div className="relative">
+                          <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-emerald-500">
+                            <FaCalendar className="w-4 h-4" />
+                          </div>
+                          <input
+                            type="datetime-local"
+                            name="approval_window_end"
+                            className="w-full pl-10 py-2.5 rounded-lg bg-emerald-50 border border-emerald-200 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-400 outline-none transition-all"
+                            value={formData.approval_window_end}
+                            onChange={handleChange}
+                            required={formData.pre_approved}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {!formData.pre_approved && (
+                    <p className="text-sm text-emerald-700 mt-2">
+                      Enable pre-approval to generate a QR code for this visitor
+                    </p>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Submit Button */}
+          <div className="mt-6">
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="w-full bg-gradient-to-r from-emerald-700 to-emerald-500 text-white py-3 px-6 rounded-lg font-medium hover:from-emerald-800 hover:to-emerald-600 transition-all flex items-center justify-center shadow-md"
+            >
+              {isLoading ? (
+                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-white"></div>
+              ) : (
+                <span className="flex items-center">
+                  {formData.pre_approved ? 'Pre-approve Visitor' : 'Register Visitor'}
+                </span>
+              )}
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 };

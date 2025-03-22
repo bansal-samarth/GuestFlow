@@ -7,41 +7,34 @@ import {
   Tooltip, Legend, ResponsiveContainer, AreaChart, Area 
 } from 'recharts';
 import { 
-  Calendar, Clock, Users, UserCheck, AlertTriangle, CheckSquare, 
+  Calendar, Users, UserCheck, AlertTriangle, CheckSquare, 
   Calendar as CalendarIcon, Clock as ClockIcon, User, 
-  Timer, FileCheck
+  Timer, FileCheck, TrendingUp, PieChart as PieChartIcon,
+  BarChart as BarChartIcon, Clock
 } from 'lucide-react';
 
-// Styled Stat Card Component with Icon
+// Modern Stat Card Component with Icon
 const StatCard = ({ title, value, color, icon: Icon }) => {
   const colorClasses = {
-    emerald: 'bg-emerald-50 border-emerald-200 text-emerald-800',
-    green: 'bg-green-50 border-green-200 text-green-800',
-    amber: 'bg-amber-50 border-amber-200 text-amber-800',
-    indigo: 'bg-indigo-50 border-indigo-200 text-indigo-800',
-    blue: 'bg-blue-50 border-blue-200 text-blue-800',
-    purple: 'bg-purple-50 border-purple-200 text-purple-800',
-    teal: 'bg-teal-50 border-teal-200 text-teal-800',
-    rose: 'bg-rose-50 border-rose-200 text-rose-800',
+    primary: 'bg-gradient-to-br from-green-50 to-emerald-100 border-emerald-200 text-emerald-800',
+    secondary: 'bg-gradient-to-br from-teal-50 to-green-100 border-teal-200 text-teal-800',
+    tertiary: 'bg-gradient-to-br from-emerald-50 to-teal-100 border-emerald-200 text-emerald-800',
+    quaternary: 'bg-gradient-to-br from-green-50 to-teal-100 border-green-200 text-green-800',
   };
   
   const iconColors = {
-    emerald: 'text-emerald-600',
-    green: 'text-green-600',
-    amber: 'text-amber-600',
-    indigo: 'text-indigo-600',
-    blue: 'text-blue-600',
-    purple: 'text-purple-600',
-    teal: 'text-teal-600',
-    rose: 'text-rose-600',
+    primary: 'text-emerald-600',
+    secondary: 'text-teal-600',
+    tertiary: 'text-emerald-600',
+    quaternary: 'text-green-600',
   };
   
   return (
-    <div className={`p-6 rounded-xl border shadow-sm ${colorClasses[color]} transition-all hover:shadow-md`}>
+    <div className={`p-6 rounded-2xl border shadow-sm ${colorClasses[color]} transition-all hover:shadow-lg transform hover:-translate-y-1 duration-300`}>
       <div className="flex items-center justify-between mb-3">
-        <h3 className="text-sm font-semibold">{title}</h3>
-        <div className={`${iconColors[color]}`}>
-          <Icon size={20} />
+        <h3 className="text-sm font-medium opacity-75">{title}</h3>
+        <div className={`${iconColors[color]} bg-white p-2 rounded-full`}>
+          <Icon size={18} />
         </div>
       </div>
       <p className="text-3xl font-bold">{value}</p>
@@ -52,17 +45,20 @@ const StatCard = ({ title, value, color, icon: Icon }) => {
 // Recent Checked-Out Visitors Component
 const RecentCheckedOutVisitors = ({ visitors }) => {
   return (
-    <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-      <h3 className="text-lg font-semibold text-gray-800 mb-4">Recent Checked-Out Visitors</h3>
+    <div className="bg-white rounded-2xl shadow-sm p-6 border border-gray-100">
+      <div className="flex items-center gap-2 mb-5">
+        <UserCheck className="text-emerald-600" size={20} />
+        <h3 className="text-lg font-semibold text-gray-800">Recent Checked-Out Visitors</h3>
+      </div>
       <div className="space-y-3">
         {visitors.map(visitor => (
-          <div key={visitor.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+          <div key={visitor.id} className="flex items-center justify-between p-4 bg-gradient-to-r from-emerald-50 to-green-50 rounded-xl border border-emerald-100 transition-all hover:shadow-md">
             <div>
               <p className="font-medium text-gray-800">{visitor.full_name}</p>
               <p className="text-sm text-gray-500">{visitor.ago}</p>
             </div>
             <div className="flex items-center">
-              <span className={`px-2 py-1 text-xs rounded-full ${getStatusColor(visitor.status)}`}>
+              <span className={`px-3 py-1 text-xs rounded-full ${getStatusColor(visitor.status)}`}>
                 {formatStatus(visitor.status)}
               </span>
             </div>
@@ -80,11 +76,14 @@ const StatusChart = ({ statusDistribution }) => {
     value: statusDistribution[status]
   }));
   
-  const COLORS = ['#10b981', '#f59e0b', '#3b82f6', '#8b5cf6', '#ef4444'];
+  const COLORS = ['#10b981', '#059669', '#047857', '#065f46', '#064e3b'];
   
   return (
-    <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-      <h3 className="text-lg font-semibold text-gray-800 mb-4">Visitor Status Distribution</h3>
+    <div className="bg-white rounded-2xl shadow-sm p-6 border border-gray-100">
+      <div className="flex items-center gap-2 mb-5">
+        <PieChartIcon className="text-emerald-600" size={20} />
+        <h3 className="text-lg font-semibold text-gray-800">Visitor Status Distribution</h3>
+      </div>
       <div className="h-64">
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
@@ -119,8 +118,11 @@ const VisitorTrend = ({ dailyTrend }) => {
   })).sort((a, b) => new Date(a.date) - new Date(b.date));
   
   return (
-    <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-      <h3 className="text-lg font-semibold text-gray-800 mb-4">Visitor Check-ins (Last 7 Days)</h3>
+    <div className="bg-white rounded-2xl shadow-sm p-6 border border-gray-100">
+      <div className="flex items-center gap-2 mb-5">
+        <TrendingUp className="text-emerald-600" size={20} />
+        <h3 className="text-lg font-semibold text-gray-800">Visitor Check-ins (Last 7 Days)</h3>
+      </div>
       <div className="h-64">
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart
@@ -138,7 +140,7 @@ const VisitorTrend = ({ dailyTrend }) => {
               labelFormatter={(date) => new Date(date).toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
             />
             <Legend />
-            <Area type="monotone" dataKey="visitors" name="Check-ins" fill="#3b82f6" stroke="#2563eb" />
+            <Area type="monotone" dataKey="visitors" name="Check-ins" fill="#10b981" stroke="#059669" />
           </AreaChart>
         </ResponsiveContainer>
       </div>
@@ -154,8 +156,11 @@ const HourlyOccupancy = ({ hourlyExpected }) => {
   }));
   
   return (
-    <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-      <h3 className="text-lg font-semibold text-gray-800 mb-4">Expected Visitors Today (Hourly)</h3>
+    <div className="bg-white rounded-2xl shadow-sm p-6 border border-gray-100">
+      <div className="flex items-center gap-2 mb-5">
+        <Clock className="text-emerald-600" size={20} />
+        <h3 className="text-lg font-semibold text-gray-800">Expected Visitors Today (Hourly)</h3>
+      </div>
       <div className="h-64">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart
@@ -173,7 +178,7 @@ const HourlyOccupancy = ({ hourlyExpected }) => {
               labelFormatter={(hour) => `Time: ${hour}`}
             />
             <Legend />
-            <Bar dataKey="visitors" name="Expected Visitors" fill="#8b5cf6" radius={[4, 4, 0, 0]} />
+            <Bar dataKey="visitors" name="Expected Visitors" fill="#059669" radius={[4, 4, 0, 0]} />
           </BarChart>
         </ResponsiveContainer>
       </div>
@@ -195,11 +200,11 @@ const formatStatus = (status) => {
 
 const getStatusColor = (status) => {
   const statusColors = {
-    'pending': 'bg-amber-100 text-amber-800',
-    'approved': 'bg-blue-100 text-blue-800',
-    'rejected': 'bg-red-100 text-red-800',
-    'checked_in': 'bg-green-100 text-green-800',
-    'checked_out': 'bg-purple-100 text-purple-800'
+    'pending': 'bg-amber-100 text-amber-800 border border-amber-200',
+    'approved': 'bg-emerald-100 text-emerald-800 border border-emerald-200',
+    'rejected': 'bg-red-100 text-red-800 border border-red-200',
+    'checked_in': 'bg-green-100 text-green-800 border border-green-200',
+    'checked_out': 'bg-teal-100 text-teal-800 border border-teal-200'
   };
   return statusColors[status] || 'bg-gray-100 text-gray-800';
 };
@@ -248,92 +253,95 @@ const DashboardHome = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="text-xl text-gray-500">Loading dashboard data...</div>
+        <div className="text-xl text-gray-500 animate-pulse">Loading dashboard data...</div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6 p-6 bg-gray-50 min-h-screen">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-800">Dashboard Overview</h1>
-        <div className="text-sm text-gray-500">
-          Last updated: {new Date().toLocaleString()}
+    <div className="p-6 bg-gradient-to-br from-green-50 to-emerald-50 min-h-screen">
+      <div className="max-w-screen-2xl mx-auto space-y-8">
+        <div className="flex items-center justify-between bg-white p-5 rounded-2xl shadow-sm border border-emerald-100">
+          <h1 className="text-2xl font-bold text-gray-800">Dashboard <span className="text-emerald-600">Overview</span></h1>
+          <div className="text-sm text-gray-500 flex items-center gap-2">
+            <Clock size={16} className="text-emerald-500" />
+            Last updated: {new Date().toLocaleString()}
+          </div>
         </div>
-      </div>
-      
-      {/* Primary Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <StatCard 
-          title="Total Visitors" 
-          value={stats.total_visitors} 
-          color="emerald"
-          icon={Users}
-        />
-        <StatCard 
-          title="Today's Visitors" 
-          value={stats.today_visitors} 
-          color="blue"
-          icon={Calendar}
-        />
-        <StatCard 
-          title="Checked In" 
-          value={stats.checked_in} 
-          color="green"
-          icon={UserCheck}
-        />
-        <StatCard 
-          title="Pending Approvals" 
-          value={stats.pending} 
-          color="amber"
-          icon={AlertTriangle}
-        />
-      </div>
-      
-      {/* Secondary Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <StatCard 
-          title="Pre-Approved Visitors" 
-          value={stats.pre_approved_count} 
-          color="indigo"
-          icon={CheckSquare}
-        />
-        <StatCard 
-          title="Avg. Visit Duration" 
-          value={`${stats.avg_visit_duration} min`} 
-          color="purple"
-          icon={Timer}
-        />
-        <StatCard 
-          title="No Photo" 
-          value={stats.no_photo_count} 
-          color="rose"
-          icon={User}
-        />
-        <StatCard 
-          title="Documents Ready" 
-          value={stats.total_visitors - stats.no_photo_count} 
-          color="teal"
-          icon={FileCheck}
-        />
-      </div>
-      
-      {/* Main Charts - Row 1 */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Today's Expected Hourly Occupancy */}
-        <HourlyOccupancy hourlyExpected={stats.hourly_expected} />
         
-        {/* Status Distribution */}
-        <StatusChart statusDistribution={stats.status_distribution} />
-      </div>
-      
-      {/* Main Charts - Row 2 */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Weekly Trend */}
-        <VisitorTrend dailyTrend={stats.daily_trend} />
+        {/* Primary Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <StatCard 
+            title="Total Visitors" 
+            value={stats.total_visitors} 
+            color="primary"
+            icon={Users}
+          />
+          <StatCard 
+            title="Today's Visitors" 
+            value={stats.today_visitors} 
+            color="secondary"
+            icon={Calendar}
+          />
+          <StatCard 
+            title="Checked In" 
+            value={stats.checked_in} 
+            color="tertiary"
+            icon={UserCheck}
+          />
+          <StatCard 
+            title="Pending Approvals" 
+            value={stats.pending} 
+            color="quaternary"
+            icon={AlertTriangle}
+          />
+        </div>
         
-        {/* Recent Checked-Out Visitors */}
-        <RecentCheckedOutVisitors visitors={stats.recent_checked_out} />
+        {/* Secondary Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <StatCard 
+            title="Pre-Approved Visitors" 
+            value={stats.pre_approved_count} 
+            color="primary"
+            icon={CheckSquare}
+          />
+          <StatCard 
+            title="Avg. Visit Duration" 
+            value={`${stats.avg_visit_duration} min`} 
+            color="secondary"
+            icon={Timer}
+          />
+          <StatCard 
+            title="No Photo" 
+            value={stats.no_photo_count} 
+            color="tertiary"
+            icon={User}
+          />
+          <StatCard 
+            title="Documents Ready" 
+            value={stats.total_visitors - stats.no_photo_count} 
+            color="quaternary"
+            icon={FileCheck}
+          />
+        </div>
+        
+        {/* Main Charts - Row 1 */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Today's Expected Hourly Occupancy */}
+          <HourlyOccupancy hourlyExpected={stats.hourly_expected} />
+          
+          {/* Status Distribution */}
+          <StatusChart statusDistribution={stats.status_distribution} />
+        </div>
+        
+        {/* Main Charts - Row 2 */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Weekly Trend */}
+          <VisitorTrend dailyTrend={stats.daily_trend} />
+          
+          {/* Recent Checked-Out Visitors */}
+          <RecentCheckedOutVisitors visitors={stats.recent_checked_out} />
+        </div>
       </div>
     </div>
   );
