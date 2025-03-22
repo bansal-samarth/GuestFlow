@@ -59,17 +59,11 @@ def approve_visitor(visitor_id):
     visitor.status = 'approved'
     db.session.commit()
 
-    # Generate QR code that encodes a check-in URL or badge ID
-    # For example, encoding a URL to check-in the visitor:
-    checkin_url = f"http://localhost:5000/api/visitors/{visitor.id}/check-in"
-    qr_code_image = generate_qr_code(checkin_url)
-
     print(f"approval QR code sent to {visitor.email or visitor.phone}")
     
     return jsonify({
         'message': 'Visitor approved',
         'visitor': visitor.to_dict(),
-        'qr_code': qr_code_image
     })
 
 

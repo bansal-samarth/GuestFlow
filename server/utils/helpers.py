@@ -29,8 +29,6 @@ def save_photo(photo_data):
         s3_client = boto3.client(
             's3',
             region_name=AWS_REGION,
-            aws_access_key_id="AKIARZ5BNBDR4JBL6D63",
-            aws_secret_access_key="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"
         )
         
         # Create in-memory file-like object

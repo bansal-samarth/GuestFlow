@@ -441,14 +441,14 @@ const Visitors = () => {
       </div>
 
       {/* Pagination */}
-      <div className="mt-8">
+      {/* <div className="mt-8">
         <Pagination
           currentPage={currentPage}
           totalItems={visitors.length}
           itemsPerPage={itemsPerPage}
           onPageChange={setCurrentPage}
         />
-      </div>
+      </div> */}
 
       {/* Modal */}
       {selectedVisitor && (
