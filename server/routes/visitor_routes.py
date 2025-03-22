@@ -124,7 +124,7 @@ def check_out_visitor(visitor_id):
     
     # Check if visitor is checked in
     if visitor.status != 'checked_in' and visitor.status != 'checked_out':
-        return jsonify({'message': 'Visitor must be checked in first'}), 400
+        return jsonify({'message': 'Visitor Must Be Checked-In First'}), 400
     
     if visitor.status == 'checked_out':
         return jsonify({'message': 'Visitor Is Already Checked-Out'}), 201
@@ -232,3 +232,22 @@ def pre_approve_visitor():
     print(f"Pre-approval QR code sent to {new_visitor.email or new_visitor.phone}")
     
     return jsonify({'message': 'Visitor pre-approved successfully', 'visitor': new_visitor.to_dict()}), 200
+
+
+# For Testing Purposes
+# @visitor_bp.route('/visitors/<int:visitor_id>/pending', methods=['PUT'])
+# @jwt_required()
+# def set_visitor_pending(visitor_id):
+#     current_user_id = get_jwt_identity()
+#     visitor = Visitor.query.get_or_404(visitor_id)
+    
+#     # Check if the current user is the host or an admin
+#     if visitor.host_id != current_user_id and User.query.get(current_user_id).role != 'admin':
+#         return jsonify({'message': 'Unauthorized'}), 403
+    
+#     visitor.status = 'pending'
+#     db.session.commit()
+
+#     print(f"Visitor {visitor.full_name} status set to pending")
+    
+#     return jsonify({'message': 'Visitor status set to pending', 'visitor': visitor.to_dict()})
