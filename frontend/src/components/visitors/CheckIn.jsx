@@ -137,7 +137,7 @@ const CheckInPage = () => {
               Welcome to the visitor management system
             </p>
             <p className="text-green-600 text-sm mt-1">
-              Scan a QR code to check in your visitors
+              Scan your QR code to check in 
             </p>
           </div>
           <button

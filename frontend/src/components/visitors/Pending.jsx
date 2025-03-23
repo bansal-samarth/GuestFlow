@@ -104,7 +104,7 @@ const PendingVisitors = () => {
 
     try {
       const response = await emailjs.send(
-        'service_0vzdjfj',
+        'service_sj60njj',
         isApproved ? 'APPROVAL_TEMPLATE' : 'REJECTION_TEMPLATE',
         templateParams,
         'd3E7xFu8nBnZQ6ARE'

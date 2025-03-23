@@ -66,10 +66,11 @@ const Visitors = () => {
   // Status badge component
   const StatusBadge = ({ status }) => {
     const statusConfig = {
-      checked_in: { bg: 'bg-emerald-100', text: 'text-emerald-800', label: 'Checked In' },
-      pending: { bg: 'bg-amber-100', text: 'text-amber-800', label: 'Pending' },
-      approved: { bg: 'bg-teal-100', text: 'text-teal-800', label: 'Approved' },
-      checked_out: { bg: 'bg-gray-100', text: 'text-gray-700', label: 'Checked Out' }
+      checked_in: { bg: 'bg-teal-100', text: 'text-emerald-800', label: 'Checked In' },
+      pending: { bg: 'bg-amber-100', text: 'text-amber-800', label: 'Pending' }, // This looks good
+      approved: { bg: 'bg-blue-100', text: 'text-blue-800', label: 'Approved' }, // Changed from text-teal-800 to text-blue-800
+      checked_out: { bg: 'bg-gray-100', text: 'text-gray-800', label: 'Checked Out' }, // Changed from bg-emerald-100/text-gray-700
+      rejected: { bg: 'bg-red-100', text: 'text-red-800', label: 'Rejected' } // This looks good
     };
 
     const config = statusConfig[status] || { bg: 'bg-gray-100', text: 'text-gray-700', label: status.replace('_', ' ') };

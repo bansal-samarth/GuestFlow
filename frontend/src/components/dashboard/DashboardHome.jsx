@@ -48,10 +48,10 @@ const RecentCheckedOutVisitors = ({ visitors }) => {
     <div className="bg-white rounded-2xl shadow-sm p-6 border border-gray-100">
       <div className="flex items-center gap-2 mb-5">
         <UserCheck className="text-emerald-600" size={20} />
-        <h3 className="text-lg font-semibold text-gray-800">Recent Checked-Out Visitors</h3>
+        <h3 className="text-lg font-semibold text-gray-800">Recently Visited</h3>
       </div>
       <div className="space-y-3">
-        {visitors.map(visitor => (
+        {visitors.slice(0, 3).map(visitor => (
           <div key={visitor.id} className="flex items-center justify-between p-4 bg-gradient-to-r from-emerald-50 to-green-50 rounded-xl border border-emerald-100 transition-all hover:shadow-md">
             <div>
               <p className="font-medium text-gray-800">{visitor.full_name}</p>

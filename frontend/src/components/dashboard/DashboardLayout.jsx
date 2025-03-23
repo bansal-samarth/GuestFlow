@@ -5,6 +5,7 @@ import { FiLogOut, FiMenu, FiX, FiChevronDown, FiChevronRight } from 'react-icon
 import { 
   FaHome, FaUsers, FaUserCheck, FaUserPlus, FaIdBadge, FaUserClock, FaUserCog 
 } from 'react-icons/fa';
+import { RiUserSharedFill } from "react-icons/ri";
 import Logo from '../common/Logo';
 
 const DashboardLayout = () => {
@@ -25,7 +26,7 @@ const DashboardLayout = () => {
     { path: '/dashboard/visitors/new', name: 'Add Visitor', icon: <FaUserPlus className="w-5 h-5" /> },
     { path: '/dashboard/visitors/pending', name: 'Pending', icon: <FaUserClock className="w-5 h-5" /> },
     { path: '/dashboard/visitors/check-in', name: 'Check In', icon: <FaUserCheck className="w-5 h-5" /> },
-    { path: '/dashboard/visitors/check-out', name: 'Check Out', icon: <FaUserCheck className="w-5 h-5" /> },
+    { path: '/dashboard/visitors/check-out', name: 'Check Out', icon: <RiUserSharedFill className="w-5 h-5" /> },
   ];
 
   // Close mobile menu when changing routes

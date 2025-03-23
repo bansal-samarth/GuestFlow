@@ -234,7 +234,7 @@ def pre_approve_visitor():
     return jsonify({'message': 'Visitor pre-approved successfully', 'visitor': new_visitor.to_dict()}), 200
 
 
-# For Testing Purposes
+# # For Testing Purposes
 # @visitor_bp.route('/visitors/<int:visitor_id>/pending', methods=['PUT'])
 # @jwt_required()
 # def set_visitor_pending(visitor_id):

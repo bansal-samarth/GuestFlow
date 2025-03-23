@@ -44,7 +44,7 @@ def save_photo(photo_data):
             s3_key, 
             ExtraArgs={
                 'ContentType': 'image/jpeg',
-                'ACL': 'public-read'  # Make the file publicly accessible
+                'ACL': 'public-read',
             }
         )
         
