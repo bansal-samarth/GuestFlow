@@ -190,6 +190,12 @@ GuestFlow is fully responsive and provides an optimal experience across a wide r
 - Mobile
 - Tablet
 
+## Screenshots
+
+Take a look at our application screenshots to get a visual understanding of GuestFlow's features and interface.
+
+[View Screenshots](https://github.com/bansal-samarth/GuestFlow/tree/main/screenshots)
+
 ## 📄 License
 
 This project is licensed under the Apache-2.0 License - see the LICENSE file for details.
